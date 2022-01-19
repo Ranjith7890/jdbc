@@ -1,0 +1,218 @@
+package com.timesheet.impl;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import com.timesheet.TimeSheetDao;
+import com.timesheet.model.Employee;
+import com.timesheet.model.TimeSheet;
+
+public class TimeSheetDaoImpl implements TimeSheetDao {
+	@Override
+	public boolean insertTimeSheet(TimeSheet timeSheet) {
+		Connection con = connectDatabase();
+		int rows=0;
+		boolean flag = false;
+		try {
+			PreparedStatement ps = con.prepareStatement("insert into timesheet (empid, date, activity, description, hrs, status) values(?,?,?,?,?,?)");
+			ps.setInt(1, timeSheet.getEmpId());
+			ps.setDate(2, (java.sql.Date)timeSheet.getDate());
+			ps.setString(3, timeSheet.getActivity());
+			ps.setString(4,  timeSheet.getDescription());
+			ps.setFloat(5, timeSheet.getHrs());
+			ps.setString(6, timeSheet.getStatus());
+			rows = ps.executeUpdate();
+			if (rows > 0) flag = true;
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return flag;
+	}
+
+	@Override
+	public Connection connectDatabase() {
+		Connection con = null;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/db","root","Chintu@123");
+			
+		} catch (ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return con;
+	}
+	@Override
+	public boolean insertEmployee(Employee employee) {
+		Connection con = connectDatabase();
+		int rows=0;
+		boolean flag = false;
+		try {
+			PreparedStatement ps = con.prepareStatement("insert into employee (empId, empName, hcc, emailId, date) values(?,?,?,?,?)");
+			ps.setInt(1, employee.getEmpid());
+			ps.setString(2, employee.getEmpName());
+			ps.setString(3,  employee.getHcc());
+			ps.setString(4, employee.getEmailId());
+			ps.setDate(5, (java.sql.Date)employee.getDate());
+			rows = ps.executeUpdate();
+			if (rows > 0) flag = true;		
+		 } catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		 }
+		 finally {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		 }
+		 return flag;	
+    }	
+	@Override
+	public  boolean changeStatus(int empId) {
+		Connection con = connectDatabase();
+		int rows=0;
+		boolean flag = false;
+		try {
+			PreparedStatement ps = con.prepareStatement(" UPDATE timesheet SET status = 'approved'  WHERE empid = 151 ");
+		    rows = ps.executeUpdate();
+			if (rows > 0) flag = true;		
+		 } catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		 }
+		 finally {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		 }
+		 return flag;
+	}
+
+	@Override
+	public boolean getTimeSheetDetails(int empId) {
+		Connection con = connectDatabase();
+		boolean flag = false;
+		try {
+			PreparedStatement ps = con.prepareStatement(" SELECT * FROM timesheet WHERE empId = 121 ");
+			ResultSet rs= ps.executeQuery();
+			if (rs.next() ) flag = true;		
+		 } catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		 }
+		 finally {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		 }
+		 return flag;
+	}
+
+}
+----------------------------------------------------------------------------------------------------------
+InterFace
+-------------------------------------------
+package com.timesheet;
+import java.sql.Connection;
+import java.util.List;
+import com.timesheet.model.Employee;
+import com.timesheet.model.TimeSheet;
+
+
+public interface TimeSheetDao {
+	public boolean insertTimeSheet(TimeSheet timeSheet);
+	public boolean insertEmployee(Employee emp);
+	public  Connection connectDatabase();
+	public List<TimeSheet> getAllTimeSheet();
+	public List<Employee> getAllEmployee();
+	public boolean getTimeSheetDetails(int empId);
+	public boolean changeStatus(int empId);
+	
+
+}
+
+---------------------------------------------------------------------------------------------------------------------
+@ Test Cases
+------------------
+package com.timesheet.test;
+import  com.timesheet.TimeSheetDao;
+import com.timesheet.impl.TimeSheetDaoImpl;
+import com.timesheet.model.Employee;
+import com.timesheet.model.TimeSheet;
+import static org.junit.jupiter.api.Assertions.*;
+import java.sql.Connection;
+import org.junit.jupiter.api.Test;
+
+public class DAOTest {
+	@Test
+	void connectDatabaseTest1() {
+		TimeSheetDao ts = new TimeSheetDaoImpl();
+		Connection con = ts.connectDatabase();
+		assertNotNull(con);
+	}
+	
+	@Test
+	void insertTimeSheetTest() {
+	TimeSheetDao ts = new TimeSheetDaoImpl();
+	TimeSheet timeSheet = new TimeSheet();
+	timeSheet.setEmpId(171);
+	long time = System.currentTimeMillis();
+	timeSheet.setDate(new java.sql.Date(time));
+	timeSheet.setActivity("Create a connecton method");
+	timeSheet.setDescription("Write a method to return connection");
+	timeSheet.setHrs(1.5F);
+	timeSheet.setStatus("Submitted");
+	boolean flag = ts.insertTimeSheet(timeSheet);
+	assertTrue(flag);
+	}
+	@Test
+	void insertEmployeeTest1() {
+		TimeSheetDao ts = new TimeSheetDaoImpl();
+		Employee employee = new Employee();
+		employee.setEmpid(110);
+		employee.setEmpName("Ranjith");
+		employee.setHcc("major Benifit");
+		employee.setEmailId("sanjay.chandu.gmail.com");
+		long time = System.currentTimeMillis();
+		employee.setDate(new java.sql.Date(time));
+		boolean flag = ts.insertEmployee(employee);
+		assertTrue(flag);
+	}
+	@Test
+	void ChangeStatustest() {
+		TimeSheetDao ts = new TimeSheetDaoImpl();
+		boolean flag = ts.changeStatus(121);
+		assertTrue(flag);	
+	}
+	@Test
+	void getTimeSheetDetails() {
+		TimeSheetDao ts = new TimeSheetDaoImpl();
+		boolean flag = ts.getTimeSheetDetails(131);
+		assertTrue(flag);	
+	}
+}
+
